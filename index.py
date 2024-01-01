@@ -56,5 +56,35 @@ def register_user():
         return jsonify({"error": str(e)}), 400
 
 
+@app.route("/users", methods=["GET"])
+def get_all_users():
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        query = "SELECT * FROM mydbtam.utilizador;"
+        cursor.execute(query)
+
+        users = []
+        for row in cursor.fetchall():
+            user = {
+                "id_utilizador": row[0],
+                "u_nome": row[1],
+                "u_username": row[2],
+                "u_email": row[4],
+                "u_morada": row[5],
+                "u_data_nascimento": row[6],
+            }
+            users.append(user)
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(users), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 if __name__ == "__main__":
     app.run(debug=True)
