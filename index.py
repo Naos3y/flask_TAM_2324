@@ -1,19 +1,17 @@
 from flask import Flask, request, jsonify
 import psycopg2
+import os
 
 app = Flask(__name__)
 
-DB_HOST = "aid.estgoh.ipc.pt"
-DB_PORT = "5432"
-DB_NAME = "db2021141279"
-DB_USER = "postgres"
-DB_PASSWORD = "postgres"
+host = os.environ.get("host")
+dbname = os.environ.get("dbname")
+user = os.environ.get("user")
+password = os.environ.get("passoword")
 
 
 def connect_to_db():
-    return psycopg2.connect(
-        host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD
-    )
+    return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
 @app.route("/register", methods=["POST"])
