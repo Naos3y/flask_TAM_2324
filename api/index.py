@@ -7,7 +7,7 @@ DB_HOST = "aid.estgoh.ipc.pt"
 DB_PORT = "5432"
 DB_NAME = "db2021141279"
 DB_USER = "a2021141279"
-DB_PASSWORD = "2021141279"
+DB_PASSWORD = "a2021141279"
 
 
 def connect_to_db():
