@@ -3,11 +3,12 @@ import psycopg2
 import os
 
 app = Flask(__name__)
+app.debug = True
 
 host = os.environ.get("host")
 dbname = os.environ.get("dbname")
 user = os.environ.get("user")
-password = os.environ.get("passoword")
+password = os.environ.get("password")
 
 
 def connect_to_db():
