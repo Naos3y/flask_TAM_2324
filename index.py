@@ -78,7 +78,8 @@ def login():
                 SECRET_KEY,
                 algorithm="HS256",
             )
-            return jsonify({"access_token": token})
+            token_str = token.decode("utf-8")
+            return jsonify({"access_token": token_str})
         else:
             return jsonify({"Erro": "Credenciais inválidas"})
 
