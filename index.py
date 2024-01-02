@@ -78,12 +78,12 @@ def login():
                 SECRET_KEY,
             )
             token_str = token.decode("utf-8")
-            return jsonify({"access_token": token_str})
+            return jsonify({"access_token": token_str}), OK_CODE
         else:
-            return jsonify({"Erro": "Credenciais inválidas"})
+            return jsonify({"Erro": "Credenciais inválidas"}), UNAUTHORIZED_CODE
 
     except Exception as e:
-        return jsonify({"Code": 500, "Erro": str(e)})
+        return jsonify({"Erro": str(e)}), SERVER_ERROR
 
 
 @app.route("/register", methods=["POST"])
