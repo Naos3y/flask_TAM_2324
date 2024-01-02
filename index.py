@@ -62,7 +62,8 @@ def get_all_users():
         conn = connect_to_db()
         cursor = conn.cursor()
 
-        cursor.callproc("mydbtam.mostrar_utilizadores")
+        query = "SELECT * FROM mydbtam.mostrar_utilizadores;"
+        cursor.execute(query)
 
         users = []
         for row in cursor.fetchall():
