@@ -76,7 +76,6 @@ def login():
                     "expiration": str(datetime.utcnow() + timedelta(hours=1)),
                 },
                 SECRET_KEY,
-                algorithm="HS256",
             )
             token_str = token.decode("utf-8")
             return jsonify({"access_token": token_str})
