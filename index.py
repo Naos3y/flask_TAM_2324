@@ -10,6 +10,8 @@ dbname = os.environ.get("dbname")
 user = os.environ.get("user")
 password = os.environ.get("password")
 
+# os erros 400 e 201 indicam que exisiu um erro (bad request) ou que algo foi criado, respetivamente
+
 
 def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
@@ -29,28 +31,25 @@ def register_user():
         conn = connect_to_db()
         cursor = conn.cursor()
 
-        query = """
-        INSERT INTO mydbtam.utilizador (u_nome, u_username, u_password, u_email, u_morada, u_data_nascimento)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        RETURNING id_utilizador;
-        """
-
-        cursor.execute(
-            query,
+        cursor.callproc(
+            "mydbtam.registar_utilizador",
             (u_nome, u_username, u_password, u_email, u_morada, u_data_nascimento),
         )
-        user_id = cursor.fetchone()[0]
+        result = cursor.fetchone()[0]
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return (
-            jsonify(
-                {"message": "Utilizador registrado com sucesso!", "user_id": user_id}
-            ),
-            201,
-        )
+        if result == 0:
+            return jsonify({"error": "Email ou username já existem."}), 400
+        else:
+            return (
+                jsonify(
+                    {"message": "Utilizador registado com sucesso!", "user_id": result}
+                ),
+                201,
+            )
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
