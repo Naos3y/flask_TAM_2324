@@ -74,6 +74,7 @@ def get_all_users():
                 "u_email": row[4],
                 "u_morada": row[5],
                 "u_data_nascimento": row[6],
+                "u_token": row[7],
             }
             users.append(user)
 
