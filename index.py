@@ -68,7 +68,7 @@ def get_all_users():
         users = []
         for row in cursor.fetchall():
             user = {
-                "id_utilizador": row[0],
+                "user_id": row[0],
                 "u_nome": row[1],
                 "u_username": row[2],
                 "u_email": row[3],
