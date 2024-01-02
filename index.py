@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 import psycopg2
+import jwt
+import datetime
 import os
 
 app = Flask(__name__)
@@ -25,8 +27,6 @@ def register_user():
     u_username = data.get("u_username")
     u_password = data.get("u_password")
     u_email = data.get("u_email")
-    u_morada = data.get("u_morada")
-    u_data_nascimento = data.get("u_data_nascimento")
 
     try:
         conn = connect_to_db()
@@ -34,7 +34,7 @@ def register_user():
 
         cursor.callproc(
             "mydbtam.registar_utilizador",
-            (u_nome, u_username, u_password, u_email, u_morada, u_data_nascimento),
+            (u_nome, u_username, u_password, u_email),
         )
         result = cursor.fetchone()[0]
 
@@ -72,10 +72,7 @@ def get_all_users():
                 "u_nome": row[1],
                 "u_username": row[2],
                 "u_email": row[3],
-                "u_morada": row[4],
-                "u_data_nascimento": row[5],
-                "u_token": row[6],
-                "u_password": row[7],
+                "u_password": row[4],
             }
             users.append(user)
 
