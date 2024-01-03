@@ -144,7 +144,8 @@ def inserir_medicamento():
         cursor = conn.cursor()
 
         cursor.callproc(
-            "mydbtam.inserir_medicamento"(
+            "mydbtam.inserir_medicamento",
+            (
                 m_nome,
                 m_dosagem,
                 m_formafarmaceutica,
@@ -158,7 +159,7 @@ def inserir_medicamento():
                 m_horario2,
                 m_horario3,
                 m_horario4,
-            )
+            ),
         )
 
         conn.commit()
