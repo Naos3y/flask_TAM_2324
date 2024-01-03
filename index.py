@@ -207,7 +207,7 @@ def get_all_medicamentos():
         conn = connect_to_db()
         cursor = conn.cursor()
 
-        query = "SELECT * FROM mydbtam.view_medicamentos;"
+        query = "SELECT * FROM mydbtam.mostrar_medicamentos;"
         cursor.execute(query)
 
         medicamentos = []
