@@ -122,6 +122,55 @@ def register_user():
         return jsonify({"error": str(e)}), NOT_FOUND_CODE
 
 
+@app.route("/insert_medicamento", methods=["POST"])
+def inserir_medicamento():
+    data = request.json
+    m_nome = data.get("m_nome")
+    m_dosagem = data.get("m_dosagem")
+    m_formafarmaceutica = data.get("m_formafarmaceutica")
+    m_posologia = data.get("m_posologia")
+    m_horario1 = data.get("m_horario1")
+    m_horario2 = data.get("m_horario2")
+    m_horario3 = data.get("m_horario3")
+    m_horario4 = data.get("m_horario4")
+    m_quantidade = data.get("m_quantidade")
+    m_duracao = data.get("m_duracao")
+    m_datainiciotratamento = data.get("m_datainiciotratamento")
+    m_administrado = data.get("m_administrado")
+    utilizador_id = data.get("utilizador_id_utilizador")
+
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc(
+            "inserir_medicamento"(
+                m_nome,
+                m_dosagem,
+                m_formafarmaceutica,
+                m_posologia,
+                m_horario1,
+                m_horario2,
+                m_horario3,
+                m_horario4,
+                m_quantidade,
+                m_duracao,
+                m_datainiciotratamento,
+                m_administrado,
+                utilizador_id,
+            )
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Medicamento inserido com sucesso!"}), SUCCESS_CODE
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), SERVER_ERROR
+
+
 @app.route("/users", methods=["GET"])
 def get_all_users():
     try:
