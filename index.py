@@ -39,7 +39,7 @@ def verify_token(token):
     except jwt.ExpiredSignatureError:
         return False, "O Token expirou! 3"
     except jwt.InvalidTokenError as e:
-        return False, f"Token inválido. Detalhes: {str(e)}"
+        return False, f"Token inválido. Detalhes cenas: {str(e)}"
     except Exception as e:
         return False, f"Erro ao verificar o token: 5 {str(e)}"
 
