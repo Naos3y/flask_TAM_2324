@@ -31,20 +31,20 @@ def connect_to_db():
 def auth_user(func):
     @wraps(func)
     def decorated(*args, **kwargs):
-        content = request.get_json()
-        if content is None or "token" not in content or not content["token"]:
+        token = request.headers.get("Authorization")
+
+        if not token:
             return jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE})
 
         try:
-            token = content["token"]
-            data = jwt.decode(token, app.config["SECRET_KEY"])
+            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
 
-            decoded_token = jwt.decode(content["token"], app.config["SECRET_KEY"])
-            if decoded_token["expiration"] < str(datetime.utcnow()):
+            if data["expiration"] < str(datetime.utcnow()):
                 return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
         except Exception as e:
             return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
+
         return func(*args, **kwargs)
 
     return decorated
@@ -70,12 +70,11 @@ def login():
         conn.close()
 
         if id_utilizador > 0:
-            expiration_time = datetime.utcnow() + timedelta(hours=1)
             token = jwt.encode(
                 {
                     "id_utilizador": id_utilizador,
                     "username": u_username,
-                    "expiration": str(expiration_time),
+                    "expiration": str(datetime.utcnow() + timedelta(hours=1)),
                 },
                 SECRET_KEY,
             )
@@ -125,7 +124,6 @@ def register_user():
 
 
 @app.route("/insert_medicamento", methods=["POST"])
-@auth_user
 def inserir_medicamento():
     data = request.json
     m_nome = data.get("m_nome")
