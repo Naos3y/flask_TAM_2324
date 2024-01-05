@@ -43,7 +43,7 @@ def auth_user(func):
                 return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
         except Exception as e:
-            return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
+            return jsonify({"Erro": f"Token inválido: {e}"}), FORBIDDEN_CODE
 
         return func(*args, **kwargs)
 
