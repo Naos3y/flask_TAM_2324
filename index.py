@@ -31,10 +31,12 @@ def connect_to_db():
 def auth_user(func):
     @wraps(func)
     def decorated(*args, **kwargs):
-        token = request.headers.get("Authorization")
+        content = request.get_json()
 
-        if not token:
+        if not content or "token" not in content:
             return jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE})
+
+        token = content["token"]
 
         try:
             data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
@@ -42,7 +44,9 @@ def auth_user(func):
             if data["expiration"] < str(datetime.utcnow()):
                 return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
-        except Exception as e:
+        except jwt.ExpiredSignatureError:
+            return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
+        except jwt.InvalidTokenError:
             return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
 
         return func(*args, **kwargs)
@@ -79,7 +83,7 @@ def login():
                 SECRET_KEY,
             )
             token_str = token.decode("utf-8")
-            return jsonify({"access_token": token_str}), OK_CODE
+            return jsonify({"access_token": token}), OK_CODE
         else:
             return jsonify({"Erro": "Credenciais inválidas"}), UNAUTHORIZED_CODE
 
