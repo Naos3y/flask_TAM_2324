@@ -40,7 +40,7 @@ def token_required(f):
             )
 
         try:
-            data = jwt.decode(token, SECRET_KEY)
+            data = jwt.decode(token, "medAppTam23")
             current_user = data["id_utilizador"]
         except:
             return jsonify({"error": "Token inválido"}), UNAUTHORIZED_CODE
@@ -76,7 +76,7 @@ def login():
                     "username": u_username,
                     "expiration": str(datetime.utcnow() + timedelta(hours=1)),
                 },
-                SECRET_KEY,
+                "medAppTam23",
             )
             token_str = token.decode("utf-8")
             return jsonify({"access_token": token_str}), OK_CODE
