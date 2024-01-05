@@ -32,8 +32,8 @@ def connect_to_db():
 def verify_token(token):
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        # if decoded_token["expiration"] < str(datetime.utcnow()):
-        # return False, "Token expirou! 1"
+        if decoded_token["expiration"] < str(datetime.utcnow()):
+            return False, "Token expirou! 1"
         return True, "Token válido. 2"
 
     except jwt.ExpiredSignatureError:
@@ -76,21 +76,21 @@ def login():
         cursor.callproc("mydbtam.verifica_login", (u_username, u_password))
         id_utilizador = cursor.fetchone()[0]
 
-        cursor.close()
-        conn.close()
-
         expiration_time = datetime.utcnow() + timedelta(hours=1)
         if id_utilizador > 0:
             token = jwt.encode(
                 {
                     "id_utilizador": id_utilizador,
                     "username": u_username,
-                    # "expiration": expiration_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "expiration": expiration_time.strftime("%Y-%m-%d %H:%M:%S"),
                 },
                 SECRET_KEY,
                 algorithm="HS256",
             )
             token_str = token.decode("utf-8")
+
+            cursor.close()
+            conn.close()
             return jsonify({"access_token": token_str}), OK_CODE
         else:
             return jsonify({"Erro": "Credenciais inválidas"}), UNAUTHORIZED_CODE
