@@ -32,7 +32,7 @@ def connect_to_db():
 def validapedido():
     current_endpoint = request.endpoint
     token = request.headers.get("Authorization")
-    if current_endpoint == "insert_medicamento":
+    if current_endpoint == "/insert_medicamento":
         if not token:
             return (
                 jsonify({"error": "Erro: ausência do cabeçalho Authorization"}),
