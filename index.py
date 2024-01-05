@@ -31,23 +31,22 @@ def connect_to_db():
 def auth_user(func):
     @wraps(func)
     def decorated(*args, **kwargs):
-        content = request.get_json()
-
-        if not content or "token" not in content:
-            return jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE})
-
-        token = content["token"]
+        token = None
+        # jwt is passed in the request header
+        if "x-access-token" in request.headers:
+            token = request.headers["x-access-token"]
+        # return 401 if token is not passed
+        if not token:
+            return jsonify({"message": "Token is missing !!"}), UNAUTHORIZED_CODE
 
         try:
-            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-
+            # decoding the payload to fetch the stored details
+            data = jwt.decode(token, app.config["SECRET_KEY"])
             if data["expiration"] < str(datetime.utcnow()):
                 return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
-        except jwt.ExpiredSignatureError:
-            return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
-        except jwt.InvalidTokenError:
-            return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
+        except:
+            return jsonify({"message": "Token is invalid !!"}), UNAUTHORIZED_CODE
 
         return func(*args, **kwargs)
 
@@ -83,7 +82,7 @@ def login():
                 SECRET_KEY,
             )
             token_str = token.decode("utf-8")
-            return jsonify({"access_token": token}), OK_CODE
+            return jsonify({"access_token": token_str}), OK_CODE
         else:
             return jsonify({"Erro": "Credenciais inválidas"}), UNAUTHORIZED_CODE
 
