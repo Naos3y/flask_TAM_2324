@@ -32,8 +32,8 @@ def connect_to_db():
 def verify_token(token):
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        if decoded_token["expiration"] < str(datetime.utcnow()):
-            return False, "Token expirou! 1"
+        # if decoded_token["expiration"] < str(datetime.utcnow()):
+        # return False, "Token expirou! 1"
         return True, "Token válido. 2"
 
     except jwt.ExpiredSignatureError:
