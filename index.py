@@ -53,6 +53,9 @@ def verify_token(token):
             print(type(token))
 
             decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            print()
+            print("decoded token abaixo")
+            print(decoded_token)
 
             if decoded_token["expiration"] < str(datetime.utcnow()):
                 return False, "Token expirou!"
