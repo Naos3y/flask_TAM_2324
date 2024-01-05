@@ -33,15 +33,15 @@ def verify_token(token):
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         if decoded_token["expiration"] < str(datetime.utcnow()):
-            return False, "Token expirou!"
-        return True, "Token válido."
+            return False, "Token expirou! 1"
+        return True, "Token válido. 2"
 
     except jwt.ExpiredSignatureError:
-        return False, "O Token expirou!"
+        return False, "O Token expirou! 3"
     except jwt.InvalidTokenError:
-        return False, "Token inválido."
+        return False, "Token inválido. 4"
     except Exception as e:
-        return False, f"Erro ao verificar o token: {str(e)}"
+        return False, f"Erro ao verificar o token: 5 {str(e)}"
 
 
 # Middleware para verificar o token antes de cada solicitação para inserir medicamento
