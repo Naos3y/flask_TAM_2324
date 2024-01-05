@@ -30,6 +30,9 @@ def connect_to_db():
 
 # Função para verificar a validade do token
 def verify_token(token):
+    print("token na verify_toke em baixo:")
+    print(token)
+    print()
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         if decoded_token["expiration"] < str(datetime.utcnow()):
@@ -49,6 +52,9 @@ def verify_token(token):
 def before_request():
     if request.endpoint == "inserir_medicamento":
         token = request.headers.get("Authorization")
+        print("token no request headers: ")
+        print(token)
+        print()
         if not token:
             return (
                 jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE}),
@@ -88,7 +94,9 @@ def login():
                 algorithm="HS256",
             )
             token_str = token.decode("utf-8")
+            print("token descodificado no login em baixo: ")
             print(token_str)
+            print()
             cursor.close()
             conn.close()
             return jsonify({"access_token": token_str}), OK_CODE
