@@ -30,6 +30,8 @@ def connect_to_db():
 
 # Função para verificar a validade do token
 def verify_token(token):
+    print("secret key em baixo: ")
+    print(SECRET_KEY)
     print("token na verify_toke em baixo:")
     print(token)
     print()
