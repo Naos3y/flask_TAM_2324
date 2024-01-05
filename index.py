@@ -35,12 +35,22 @@ def verify_token(token):
     print("Token na verify_token abaixo:")
     print(token)
     print()
+    print("tipo")
+    print()
+    print(type(token))
 
     try:
         # Verifica se "Bearer" está presente no token
         if "Bearer" in token:
             # Divide a string pelo espaço e pega o último elemento
             token = token.split(" ")[1]  # Atribui o token extraído à variável token
+            print()
+            print("token depois do bearer")
+            print(token)
+            print()
+            print("tipoe")
+            print()
+            print(type(token))
 
             decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
 
