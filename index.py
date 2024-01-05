@@ -28,39 +28,24 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
-def auth_user(func):
-    @wraps(func)
+def token_required(f):
+    @wraps(f)
     def decorated(*args, **kwargs):
-        # Obtenha o token do cabeçalho "Authorization"
         token = request.headers.get("Authorization")
 
-        # Verifique se o token está presente
         if not token:
             return (
-                jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE}),
+                jsonify({"error": "Token de autenticação está ausente"}),
                 UNAUTHORIZED_CODE,
             )
 
         try:
-            # Decodifique o token JWT com a chave secreta e o algoritmo HS256
-            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            data = jwt.decode(token, SECRET_KEY)
+            current_user = data["id_utilizador"]
+        except:
+            return jsonify({"error": "Token inválido"}), UNAUTHORIZED_CODE
 
-            # Verifique a expiração do token
-            if data["expiration"] < str(datetime.utcnow()):
-                return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
-
-        except jwt.ExpiredSignatureError:
-            return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
-        except jwt.InvalidTokenError:
-            return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
-        except Exception as e:
-            return (
-                jsonify({"Erro": f"Erro ao decodificar o token: {str(e)}"}),
-                FORBIDDEN_CODE,
-            )
-
-        # Se tudo estiver correto, retorne a função original com os argumentos
-        return func(*args, **kwargs)
+        return f(current_user, *args, **kwargs)
 
     return decorated
 
@@ -139,7 +124,7 @@ def register_user():
 
 
 @app.route("/insert_medicamento", methods=["POST"])
-@auth_user
+@token_required
 def inserir_medicamento():
     data = request.json
     m_nome = data.get("m_nome")
