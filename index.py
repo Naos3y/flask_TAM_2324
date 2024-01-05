@@ -30,23 +30,31 @@ def connect_to_db():
 
 # Função para verificar a validade do token
 def verify_token(token):
-    print("secret key em baixo: ")
+    print("Secret key abaixo:")
     print(SECRET_KEY)
-    print("token na verify_toke em baixo:")
+    print("Token na verify_token abaixo:")
     print(token)
     print()
+
     try:
-        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        if decoded_token["expiration"] < str(datetime.utcnow()):
-            return False, "Token expirou! 1"
-        return True, "Token válido. 2"
+        # Verifica se "Bearer" está presente no token
+        if "Bearer" in token:
+            # Divide a string pelo espaço e pega o último elemento
+            token = token.split(" ")[1]  # Atribui o token extraído à variável token
+
+            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+
+            if decoded_token["expiration"] < str(datetime.utcnow()):
+                return False, "Token expirou!"
+
+            return True, "Token válido."
 
     except jwt.ExpiredSignatureError:
-        return False, "O Token expirou! 3"
+        return False, "O Token expirou!"
     except jwt.InvalidTokenError as e:
-        return False, f"Token inválido. Detalhes cenas: {str(e)}"
+        return False, f"Token inválido. Detalhes: {str(e)}"
     except Exception as e:
-        return False, f"Erro ao verificar o token: 5 {str(e)}"
+        return False, f"Erro ao verificar o token: {str(e)}"
 
 
 # Middleware para verificar o token antes de cada solicitação para inserir medicamento
