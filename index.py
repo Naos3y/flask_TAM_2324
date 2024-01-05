@@ -28,26 +28,6 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
-@app.before_request
-def validapedido():
-    current_endpoint = request.endpoint
-    token = request.headers.get("Authorization")
-    if current_endpoint == "gettodaymeds":
-        if not token:
-            return jsonify("Erro: ausencia do token"), UNAUTHORIZED_CODE
-        try:
-            decoded_token = jwt.decode(
-                token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"]
-            )
-            if (
-                datetime.strptime(decoded_token["expiration"], "%Y-%m-%d %H:%M:%S.%f")
-                <= datetime.utcnow()
-            ):
-                return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
-
-
 def auth_user(func):
     @wraps(func)
     def decorated(*args, **kwargs):
