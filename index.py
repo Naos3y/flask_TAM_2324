@@ -28,37 +28,36 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
-def token_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = None
+# Função para verificar a validade do token
+def verify_token(token):
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        if decoded_token["expiration"] < str(datetime.utcnow()):
+            return False, "Token expirou!"
+        return True, "Token válido."
 
-        # Tente obter o token do corpo da solicitação JSON
-        if "token" in request.json:
-            token = request.json["token"]
+    except jwt.ExpiredSignatureError:
+        return False, "O Token expirou!"
+    except jwt.InvalidTokenError:
+        return False, "Token inválido."
+    except Exception as e:
+        return False, f"Erro ao verificar o token: {str(e)}"
 
+
+# Middleware para verificar o token antes de cada solicitação para inserir medicamento
+@app.before_request
+def before_request():
+    if request.endpoint == "inserir_medicamento":
+        token = request.headers.get("Authorization")
         if not token:
-            return jsonify({"error": "Token de autenticação está ausente"}), 401
-
-        try:
-            # Verifique e decodifique o token
-            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            if data["expiration"] < str(datetime.utcnow()):
-                return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
-
-        except jwt.ExpiredSignatureError:
-            return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
-        except jwt.InvalidTokenError:
-            return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
-        except Exception as e:
             return (
-                jsonify({"Erro": f"Erro ao decodificar o token: {str(e)}"}),
-                FORBIDDEN_CODE,
+                jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE}),
+                401,
             )
 
-        return f(*args, **kwargs)
-
-    return decorated_function
+        is_valid, message = verify_token(token)
+        if not is_valid:
+            return jsonify({"Erro": message, "Code": UNAUTHORIZED_CODE}), 401
 
 
 @app.route("/login", methods=["POST"])
@@ -80,14 +79,16 @@ def login():
         cursor.close()
         conn.close()
 
+        expiration_time = datetime.utcnow() + timedelta(hours=1)
         if id_utilizador > 0:
             token = jwt.encode(
                 {
                     "id_utilizador": id_utilizador,
                     "username": u_username,
-                    "expiration": str(datetime.utcnow() + timedelta(hours=1)),
+                    "expiration": expiration_time.strftime("%Y-%m-%d %H:%M:%S"),
                 },
                 SECRET_KEY,
+                algorithm="HS256",
             )
             token_str = token.decode("utf-8")
             return jsonify({"access_token": token_str}), OK_CODE
@@ -135,7 +136,6 @@ def register_user():
 
 
 @app.route("/insert_medicamento", methods=["POST"])
-@token_required
 def inserir_medicamento():
     data = request.json
     m_nome = data.get("m_nome")
