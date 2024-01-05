@@ -28,36 +28,40 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
-def auth_user(func):
-    @wraps(func)
-    def decorated(*args, **kwargs):
-        # Verifique se o token está presente no cabeçalho "Authorization"
-        token = request.headers.get("Authorization")
-
+@app.before_request
+def validapedido():
+    current_endpoint = request.endpoint
+    token = request.headers.get("Authorization")
+    if current_endpoint == "insert_medicamento":
         if not token:
-            return jsonify({"Erro": "Token está em falta!"}), UNAUTHORIZED_CODE
+            return (
+                jsonify({"error": "Erro: ausência do cabeçalho Authorization"}),
+                UNAUTHORIZED_CODE,
+            )
+
+        token_parts = token.split(" ")
+        if len(token_parts) != 2 or token_parts[0].lower() != "bearer":
+            return (
+                jsonify({"error": "Formato inválido do cabeçalho Authorization"}),
+                UNAUTHORIZED_CODE,
+            )
+
+        token = token_parts[1]
 
         try:
-            # Decodifique o token JWT usando a chave secreta do aplicativo
-            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-
-            # Verifique se o token expirou
+            decoded_token = jwt.decode(
+                token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"]
+            )
             if (
-                datetime.strptime(data["expiration"], "%Y-%m-%d %H:%M:%S.%f")
+                datetime.strptime(decoded_token["expiration"], "%Y-%m-%d %H:%M:%S.%f")
                 <= datetime.utcnow()
             ):
                 return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
 
         except jwt.ExpiredSignatureError:
-            return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
-
+            return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
         except jwt.InvalidTokenError:
-            return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
-
-        # Se o token for válido, prossiga com a função decorada
-        return func(*args, **kwargs)
-
-    return decorated
+            return jsonify({"error": "Token inválido"}), UNAUTHORIZED_CODE
 
 
 @app.route("/login", methods=["POST"])
@@ -135,7 +139,6 @@ def register_user():
 
 
 @app.route("/insert_medicamento", methods=["POST"])
-@auth_user
 def inserir_medicamento():
     data = request.json
     m_nome = data.get("m_nome")
