@@ -30,24 +30,28 @@ def connect_to_db():
 
 def token_required(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get("Authorization")
+    def decorated_function(*args, **kwargs):
+        token = None
+
+        # Tente obter o token do corpo da solicitação JSON
+        if "token" in request.json:
+            token = request.json["token"]
 
         if not token:
-            return (
-                jsonify({"error": "Token de autenticação está ausente"}),
-                UNAUTHORIZED_CODE,
-            )
+            return jsonify({"error": "Token de autenticação está ausente"}), 401
 
         try:
-            data = jwt.decode(token, "medAppTam23")
-            current_user = data["id_utilizador"]
-        except:
-            return jsonify({"error": "Token inválido"}), UNAUTHORIZED_CODE
+            # Verifique e decodifique o token
+            data = jwt.decode(token, SECRET_KEY)
+            # Aqui, você pode adicionar lógica adicional para verificar se o token é válido,
+            # por exemplo, verificar se o usuário associado ao token ainda existe no sistema.
 
-        return f(current_user, *args, **kwargs)
+            return f(*args, **kwargs)
 
-    return decorated
+        except Exception as e:
+            return jsonify({"error": "Token inválido"}), 401
+
+    return decorated_function
 
 
 @app.route("/login", methods=["POST"])
@@ -76,7 +80,7 @@ def login():
                     "username": u_username,
                     "expiration": str(datetime.utcnow() + timedelta(hours=1)),
                 },
-                "medAppTam23",
+                SECRET_KEY,
             )
             token_str = token.decode("utf-8")
             return jsonify({"access_token": token_str}), OK_CODE
