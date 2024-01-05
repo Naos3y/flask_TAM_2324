@@ -37,17 +37,16 @@ def auth_user(func):
         if not token:
             return jsonify({"Erro": "Token está em falta!"}), UNAUTHORIZED_CODE
 
-        # Remova o prefixo "Bearer " do token, se presente
-        if token.startswith("Bearer "):
-            token = token.split(" ")[1]
-
         try:
             # Decodifique o token JWT usando a chave secreta do aplicativo
             data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
 
             # Verifique se o token expirou
-            if data["expiration"] < str(datetime.utcnow()):
-                return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
+            if (
+                datetime.strptime(data["expiration"], "%Y-%m-%d %H:%M:%S.%f")
+                <= datetime.utcnow()
+            ):
+                return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
 
         except jwt.ExpiredSignatureError:
             return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
