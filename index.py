@@ -139,6 +139,7 @@ def register_user():
 
 
 @app.route("/insert_medicamento", methods=["POST"])
+@auth_user
 def inserir_medicamento():
     data = request.json
     m_nome = data.get("m_nome")
