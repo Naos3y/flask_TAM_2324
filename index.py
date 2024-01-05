@@ -32,21 +32,23 @@ def auth_user(func):
     @wraps(func)
     def decorated(*args, **kwargs):
         token = None
-        # jwt is passed in the request header
         if "x-access-token" in request.headers:
             token = request.headers["x-access-token"]
-        # return 401 if token is not passed
+
         if not token:
-            return jsonify({"message": "Token is missing !!"}), UNAUTHORIZED_CODE
+            return jsonify({"message": "Token is missing!"}), UNAUTHORIZED_CODE
 
         try:
-            # decoding the payload to fetch the stored details
-            data = jwt.decode(token, app.config["SECRET_KEY"])
+            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+
             if data["expiration"] < str(datetime.utcnow()):
                 return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
-        except:
-            return jsonify({"message": "Token is invalid !!"}), UNAUTHORIZED_CODE
+        except jwt.ExpiredSignatureError:
+            return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
+
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Token is invalid!"}), UNAUTHORIZED_CODE
 
         return func(*args, **kwargs)
 
