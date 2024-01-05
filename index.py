@@ -43,13 +43,20 @@ def token_required(f):
         try:
             # Verifique e decodifique o token
             data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            # Aqui, você pode adicionar lógica adicional para verificar se o token é válido,
-            # por exemplo, verificar se o usuário associado ao token ainda existe no sistema.
+            if data["expiration"] < str(datetime.utcnow()):
+                return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
-            return f(*args, **kwargs)
-
+        except jwt.ExpiredSignatureError:
+            return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
+        except jwt.InvalidTokenError:
+            return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
         except Exception as e:
-            return jsonify({"error": "Token inválido"}), 401
+            return (
+                jsonify({"Erro": f"Erro ao decodificar o token: {str(e)}"}),
+                FORBIDDEN_CODE,
+            )
+
+        return f(*args, **kwargs)
 
     return decorated_function
 
