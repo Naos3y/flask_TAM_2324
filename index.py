@@ -31,20 +31,35 @@ def connect_to_db():
 def auth_user(func):
     @wraps(func)
     def decorated(*args, **kwargs):
-        content = request.get_json()
-        if content is None or "token" not in content or not content["token"]:
-            return jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE})
+        # Obtenha o token do cabeçalho "Authorization"
+        token = request.headers.get("Authorization")
+
+        # Verifique se o token está presente
+        if not token:
+            return (
+                jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE}),
+                UNAUTHORIZED_CODE,
+            )
 
         try:
-            token = content["token"]
-            data = jwt.decode(token, app.config["SECRET_KEY"])
+            # Decodifique o token JWT com a chave secreta e o algoritmo HS256
+            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
 
-            decoded_token = jwt.decode(content["token"], app.config["SECRET_KEY"])
-            if decoded_token["expiration"] < str(datetime.utcnow()):
+            # Verifique a expiração do token
+            if data["expiration"] < str(datetime.utcnow()):
                 return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
-        except Exception as e:
+        except jwt.ExpiredSignatureError:
+            return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
+        except jwt.InvalidTokenError:
             return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
+        except Exception as e:
+            return (
+                jsonify({"Erro": f"Erro ao decodificar o token: {str(e)}"}),
+                FORBIDDEN_CODE,
+            )
+
+        # Se tudo estiver correto, retorne a função original com os argumentos
         return func(*args, **kwargs)
 
     return decorated
@@ -70,17 +85,16 @@ def login():
         conn.close()
 
         if id_utilizador > 0:
-            token_expiration = datetime.utcnow() + timedelta(minutes=60)
             token = jwt.encode(
                 {
                     "id_utilizador": id_utilizador,
                     "username": u_username,
-                    "expiration": token_expiration.strftime("%Y-%m-%d %H:%M:%S.%f"),
+                    "expiration": str(datetime.utcnow() + timedelta(hours=1)),
                 },
                 SECRET_KEY,
-                algorithm="HS256",
             )
-            return jsonify({"access_token": token.decode("utf-8")}), OK_CODE
+            token_str = token.decode("utf-8")
+            return jsonify({"access_token": token_str}), OK_CODE
         else:
             return jsonify({"Erro": "Credenciais inválidas"}), UNAUTHORIZED_CODE
 
@@ -125,7 +139,6 @@ def register_user():
 
 
 @app.route("/insert_medicamento", methods=["POST"])
-@auth_user
 def inserir_medicamento():
     data = request.json
     m_nome = data.get("m_nome")
