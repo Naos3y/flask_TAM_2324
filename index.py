@@ -80,13 +80,15 @@ def login():
         conn.close()
 
         if id_utilizador > 0:
+            token_expiration = datetime.utcnow() + timedelta(minutes=60)
             token = jwt.encode(
                 {
                     "id_utilizador": id_utilizador,
                     "username": u_username,
-                    "expiration": str(datetime.utcnow() + timedelta(hours=1)),
+                    "expiration": token_expiration.strftime("%Y-%m-%d %H:%M:%S.%f"),
                 },
                 SECRET_KEY,
+                algorithm="HS256",
             )
             return jsonify({"access_token": token.decode("utf-8")}), OK_CODE
         else:
