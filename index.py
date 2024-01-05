@@ -28,19 +28,44 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
+@app.before_request
+def validapedido():
+    current_endpoint = request.endpoint
+    token = request.headers.get("Authorization")
+    if current_endpoint == "gettodaymeds":
+        if not token:
+            return jsonify("Erro: ausencia do token"), UNAUTHORIZED_CODE
+        try:
+            decoded_token = jwt.decode(
+                token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"]
+            )
+            if (
+                datetime.strptime(decoded_token["expiration"], "%Y-%m-%d %H:%M:%S.%f")
+                <= datetime.utcnow()
+            ):
+                return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
+
+
 def auth_user(func):
     @wraps(func)
     def decorated(*args, **kwargs):
-        token = None
-        if "x-access-token" in request.headers:
-            token = request.headers["x-access-token"]
+        # Verifique se o token está presente no cabeçalho "Authorization"
+        token = request.headers.get("Authorization")
 
         if not token:
-            return jsonify({"message": "Token is missing!"}), UNAUTHORIZED_CODE
+            return jsonify({"Erro": "Token está em falta!"}), UNAUTHORIZED_CODE
+
+        # Remova o prefixo "Bearer " do token, se presente
+        if token.startswith("Bearer "):
+            token = token.split(" ")[1]
 
         try:
+            # Decodifique o token JWT usando a chave secreta do aplicativo
             data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
 
+            # Verifique se o token expirou
             if data["expiration"] < str(datetime.utcnow()):
                 return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
@@ -48,8 +73,9 @@ def auth_user(func):
             return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
         except jwt.InvalidTokenError:
-            return jsonify({"message": "Token is invalid!"}), UNAUTHORIZED_CODE
+            return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
 
+        # Se o token for válido, prossiga com a função decorada
         return func(*args, **kwargs)
 
     return decorated
@@ -83,8 +109,7 @@ def login():
                 },
                 SECRET_KEY,
             )
-            token_str = token.decode("utf-8")
-            return jsonify({"access_token": token_str}), OK_CODE
+            return jsonify({"access_token": token.decode("utf-8")}), OK_CODE
         else:
             return jsonify({"Erro": "Credenciais inválidas"}), UNAUTHORIZED_CODE
 
