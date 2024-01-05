@@ -64,14 +64,15 @@ def login():
         cursor = conn.cursor()
 
         cursor.callproc("mydbtam.verifica_login", (u_username, u_password))
-        result = cursor.fetchone()[0]
+        id_utilizador = cursor.fetchone()[0]
 
         cursor.close()
         conn.close()
 
-        if result:
+        if id_utilizador > 0:
             token = jwt.encode(
                 {
+                    "id_utilizador": id_utilizador,
                     "username": u_username,
                     "expiration": str(datetime.utcnow() + timedelta(hours=1)),
                 },
