@@ -42,7 +42,7 @@ def token_required(f):
 
         try:
             # Verifique e decodifique o token
-            data = jwt.decode(token, SECRET_KEY)
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             # Aqui, você pode adicionar lógica adicional para verificar se o token é válido,
             # por exemplo, verificar se o usuário associado ao token ainda existe no sistema.
 
