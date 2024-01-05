@@ -28,40 +28,26 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
-@app.before_request
-def validapedido():
-    current_endpoint = request.endpoint
-    token = request.headers.get("Authorization")
-    if current_endpoint == "/insert_medicamento":
-        if not token:
-            return (
-                jsonify({"error": "Erro: ausência do cabeçalho Authorization"}),
-                UNAUTHORIZED_CODE,
-            )
-
-        token_parts = token.split(" ")
-        if len(token_parts) != 2 or token_parts[0].lower() != "bearer":
-            return (
-                jsonify({"error": "Formato inválido do cabeçalho Authorization"}),
-                UNAUTHORIZED_CODE,
-            )
-
-        token = token_parts[1]
+def auth_user(func):
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        content = request.get_json()
+        if content is None or "token" not in content or not content["token"]:
+            return jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE})
 
         try:
-            decoded_token = jwt.decode(
-                token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"]
-            )
-            if (
-                datetime.strptime(decoded_token["expiration"], "%Y-%m-%d %H:%M:%S.%f")
-                <= datetime.utcnow()
-            ):
-                return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
+            token = content["token"]
+            data = jwt.decode(token, app.config["SECRET_KEY"])
 
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Token expirado"}), UNAUTHORIZED_CODE
-        except jwt.InvalidTokenError:
-            return jsonify({"error": "Token inválido"}), UNAUTHORIZED_CODE
+            decoded_token = jwt.decode(content["token"], app.config["SECRET_KEY"])
+            if decoded_token["expiration"] < str(datetime.utcnow()):
+                return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
+
+        except Exception as e:
+            return jsonify({"Erro": "Token inválido"}), FORBIDDEN_CODE
+        return func(*args, **kwargs)
+
+    return decorated
 
 
 @app.route("/login", methods=["POST"])
@@ -139,6 +125,7 @@ def register_user():
 
 
 @app.route("/insert_medicamento", methods=["POST"])
+@auth_user
 def inserir_medicamento():
     data = request.json
     m_nome = data.get("m_nome")
