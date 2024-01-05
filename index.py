@@ -88,7 +88,7 @@ def login():
                 algorithm="HS256",
             )
             token_str = token.decode("utf-8")
-
+            print(token_str)
             cursor.close()
             conn.close()
             return jsonify({"access_token": token_str}), OK_CODE
