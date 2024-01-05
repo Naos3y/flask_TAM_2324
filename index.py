@@ -37,9 +37,14 @@ def auth_user(func):
             return jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE})
 
         try:
-            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+            data = jwt.decode(
+                token.split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"]
+            )
 
-            if data["expiration"] < str(datetime.utcnow()):
+            if (
+                datetime.strptime(data["expiration"], "%Y-%m-%d %H:%M:%S.%f")
+                < datetime.utcnow()
+            ):
                 return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
 
         except Exception as e:
@@ -70,13 +75,15 @@ def login():
         conn.close()
 
         if id_utilizador > 0:
+            expiration_time = datetime.utcnow() + timedelta(hours=1)
             token = jwt.encode(
                 {
                     "id_utilizador": id_utilizador,
                     "username": u_username,
-                    "expiration": str(datetime.utcnow() + timedelta(hours=1)),
+                    "expiration": str(expiration_time),
                 },
                 SECRET_KEY,
+                algorithm="HS256",
             )
             token_str = token.decode("utf-8")
             return jsonify({"access_token": token_str}), OK_CODE
