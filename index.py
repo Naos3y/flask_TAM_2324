@@ -29,25 +29,32 @@ def connect_to_db():
 
 
 def auth_user(func):
-    @wraps(func)
-    def decorated(*args, **kwargs):
-        token = request.headers.get("Authorization")
+    token = request.headers.get("Authorization")
 
-        if not token:
-            return jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE})
+    if not token:
+        return jsonify({"Erro": "Token não encontrado"}), UNAUTHORIZED_CODE
 
-        try:
-            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+    try:
+        payload = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        token_expiration = datetime.strptime(
+            payload["expiration"], "%Y-%m-%dT%H:%M:%SZ"
+        )
 
-            if data["expiration"] < str(datetime.utcnow()):
-                return jsonify({"Erro": "O Token expirou!"}), NOT_FOUND_CODE
+        if token_expiration < datetime.utcnow():
+            return jsonify({"Erro": "Token expirado"}), UNAUTHORIZED_CODE
 
-        except Exception as e:
-            return jsonify({"Erro": f"Token inválido: {e}"}), FORBIDDEN_CODE
+        return (
+            jsonify(
+                {"user_id": payload["id_utilizador"], "username": payload["username"]}
+            ),
+            OK_CODE,
+        )
 
-        return func(*args, **kwargs)
+    except jwt.ExpiredSignatureError:
+        return jsonify({"Erro": "Token expirado"}), UNAUTHORIZED_CODE
 
-    return decorated
+    except jwt.InvalidTokenError:
+        return jsonify({"Erro": "Token inválido"}), UNAUTHORIZED_CODE
 
 
 @app.route("/login", methods=["POST"])
