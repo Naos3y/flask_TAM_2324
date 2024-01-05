@@ -85,7 +85,7 @@ def login():
                 {
                     "id_utilizador": id_utilizador,
                     "username": u_username,
-                    "expiration": expiration_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    # "expiration": expiration_time.strftime("%Y-%m-%d %H:%M:%S"),
                 },
                 SECRET_KEY,
                 algorithm="HS256",
