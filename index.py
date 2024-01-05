@@ -43,7 +43,7 @@ def auth_user(func):
 
         try:
             # Decodifique o token JWT com a chave secreta e o algoritmo HS256
-            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
 
             # Verifique a expiração do token
             if data["expiration"] < str(datetime.utcnow()):
