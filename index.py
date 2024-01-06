@@ -28,40 +28,16 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
-def verifica_token():
-    token = request.headers.get("Authorization")
-
-    if not token:
-        return jsonify({"Erro": "Token está em falta!"}), UNAUTHORIZED_CODE
-
-    if "Bearer" not in token:
-        return jsonify({"Erro": "Formato de token inválido"}), UNAUTHORIZED_CODE
-
-    token = token.split(" ")[1]
-
-    try:
-        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-    except jwt.ExpiredSignatureError:
-        return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
-    except jwt.InvalidTokenError:
-        return jsonify({"Erro": "Token Inválido"}), UNAUTHORIZED_CODE
-
-    if decoded_token.get("expiration") < str(datetime.utcnow()):
-        return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
-
-    return decoded_token.get("user_id")
-
-
 def verifica_token(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         token = request.headers.get("Authorization")
 
-        if not token or "Bearer" not in token:
-            return (
-                jsonify({"Erro": "Token está em falta ou formato inválido"}),
-                UNAUTHORIZED_CODE,
-            )
+        if not token:
+            return jsonify({"Erro": "Token está em falta!"}), UNAUTHORIZED_CODE
+
+        if "Bearer" not in token:
+            return jsonify({"Erro": "Formato de token inválido"}), UNAUTHORIZED_CODE
 
         token = token.split(" ")[1]
 
@@ -70,12 +46,14 @@ def verifica_token(func):
         except jwt.ExpiredSignatureError:
             return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
         except jwt.InvalidTokenError:
-            return jsonify({"Erro": "Token Inválido"}), UNAUTHORIZED_CODE
+            return jsonify({"Erro": "Token Inválido ou mal formado"}), UNAUTHORIZED_CODE
 
         if decoded_token.get("expiration") < str(datetime.utcnow()):
             return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
 
-        return func(decoded_token.get("user_id"), *args, **kwargs)
+        user_id = decoded_token.get("user_id")
+
+        return func(user_id, *args, **kwargs)
 
     return wrapper
 
