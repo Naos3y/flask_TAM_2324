@@ -51,9 +51,10 @@ def verifica_token(func):
         if decoded_token.get("expiration") < str(datetime.utcnow()):
             return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
 
-        user_id = decoded_token.get("user_id")
+        user_id = decoded_token.get("id_utilizador")
+        print(user_id)
 
-        return func(user_id, *args, **kwargs)
+        return func(*args, **kwargs)
 
     return wrapper
 
@@ -348,7 +349,7 @@ def get_medicamentos(user_id):
         cursor.close()
         conn.close()
 
-        return jsonify({"userID": user_id}), OK_CODE
+        return jsonify({"medicamentos": medicamentos, "userId": user_id}), OK_CODE
 
     except Exception as e:
         return jsonify({"error": str(e)}), NOT_FOUND_CODE
