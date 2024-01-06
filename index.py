@@ -54,7 +54,7 @@ def verifica_token(func):
         user_id = decoded_token.get("id_utilizador")
         print(user_id)
 
-        return func(*args, **kwargs)
+        return func(user_id, *args, **kwargs)
 
     return wrapper
 
