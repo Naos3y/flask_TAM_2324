@@ -28,7 +28,17 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
-# Função para verificar a validade do token
+def get_user_id():
+    token = request.headers.get("Authorization")
+    if not token:
+        return (
+            jsonify({"Erro": "Token está em falta!"}),
+            UNAUTHORIZED_CODE,
+        )
+    decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    return decoded_token.get("user_id")
+
+
 def verify_token(token):
     print("Secret key abaixo:")
     print(SECRET_KEY)
@@ -42,8 +52,7 @@ def verify_token(token):
     try:
         # Verifica se "Bearer" está presente no token
         if "Bearer" in token:
-            # Divide a string pelo espaço e pega o último elemento
-            token = token.split(" ")[1]  # Atribui o token extraído à variável token
+            token = token.split(" ")[1]
             print()
             print("token depois do bearer")
             print(token)
@@ -73,20 +82,20 @@ def verify_token(token):
 # Middleware para verificar o token antes de cada solicitação para inserir medicamento
 @app.before_request
 def before_request():
-    if request.endpoint == "inserir_medicamento":
+    if request.endpoint != "login" and request.endpoint != "register":
         token = request.headers.get("Authorization")
         print("token no request headers: ")
         print(token)
         print()
         if not token:
             return (
-                jsonify({"Erro": "Token está em falta!", "Code": UNAUTHORIZED_CODE}),
-                401,
+                jsonify({"Erro": "Token está em falta!"}),
+                UNAUTHORIZED_CODE,
             )
 
         is_valid, message = verify_token(token)
         if not is_valid:
-            return jsonify({"Erro": message, "Code": UNAUTHORIZED_CODE}), 401
+            return jsonify({"Erro": message}), UNAUTHORIZED_CODE
 
 
 @app.route("/login", methods=["POST"])
@@ -281,6 +290,47 @@ def get_all_medicamentos():
 
     except Exception as e:
         return jsonify({"error": str(e)}), NOT_FOUND_CODE
+
+
+@app.route("/get_user_medicamentos", methods=["GET"])
+def get_medicamentos():
+    try:
+        id_user = get_user_id()
+
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc("mydbtam.get_medicamentos_user", (id_user,))
+
+        results = cursor.fetchall()
+
+        medicamentos = []
+        for row in results:
+            medicamento = {
+                "id_medicamentos": row[0],
+                "m_nome": row[1],
+                "m_dosagem": row[2],
+                "m_formafarmaceutica": row[3],
+                "m_posologia": row[4],
+                "m_horario1": row[5],
+                "m_horario2": row[6],
+                "m_horario3": row[7],
+                "m_horario4": row[8],
+                "m_quantidade": row[9],
+                "m_duracao": row[10],
+                "m_datainiciotratamento": row[11],
+                "m_administrado": row[12],
+                "utilizador_id_utilizador": row[13],
+            }
+            medicamentos.append(medicamento)
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"medicamentos": medicamentos}), OK_CODE
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), SERVER_ERROR
 
 
 if __name__ == "__main__":
