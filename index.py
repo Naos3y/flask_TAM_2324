@@ -87,7 +87,11 @@ def verify_token(token):
 # Middleware para verificar o token antes de cada solicitação para inserir medicamento
 @app.before_request
 def before_request():
-    if request.endpoint != "login" and request.endpoint != "register":
+    if (
+        request.endpoint != "login"
+        and request.endpoint != "register"
+        and request.endpoint != "users"
+    ):
         token = request.headers.get("Authorization")
         print("token no request headers: ")
         print(token)
@@ -301,6 +305,7 @@ def get_all_medicamentos():
 def get_medicamentos():
     try:
         id_user = get_user_id()
+        print(id_user)
 
         conn = connect_to_db()
         cursor = conn.cursor()
