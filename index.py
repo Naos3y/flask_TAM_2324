@@ -98,7 +98,7 @@ def before_request():
         print()
         if not token:
             return (
-                jsonify({"Erro": "Token está em falta!"}),
+                jsonify({"Erro": "Token está em falta! - Middleware"}),
                 UNAUTHORIZED_CODE,
             )
 
