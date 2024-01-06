@@ -325,10 +325,8 @@ def get_medicamentos(user_id):
         query = "SELECT * FROM mydbtam.mostrar_medicamentos_user WHERE utilizador_id_utilizador = %s;"
         cursor.execute(query, (user_id,))
 
-        results = cursor.fetchall()
-
         medicamentos = []
-        for row in results:
+        for row in cursor.fetchall():
             medicamento = {
                 "id_medicamentos": row[0],
                 "m_nome": row[1],
@@ -350,10 +348,10 @@ def get_medicamentos(user_id):
         cursor.close()
         conn.close()
 
-        return jsonify({"medicamentos": medicamentos, "userId": user_id}), OK_CODE
+        return jsonify(medicamentos), OK_CODE
 
     except Exception as e:
-        return jsonify({"error": str(e)}), SERVER_ERROR
+        return jsonify({"error": str(e)}), NOT_FOUND_CODE
 
 
 if __name__ == "__main__":
