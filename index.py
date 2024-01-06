@@ -344,7 +344,7 @@ def get_medicamentos(user_id):
         conn = connect_to_db()
         cursor = conn.cursor()
 
-        query = "SELECT * FROM mydbtam.v_medicamentos_by_user WHERE utilizador_id_utilizador = %s;"
+        query = "SELECT * FROM mydbtam.mostrar_medicamentos_user WHERE utilizador_id_utilizador = %s;"
         cursor.execute(query, (user_id,))
 
         results = cursor.fetchall()
