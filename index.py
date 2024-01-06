@@ -344,7 +344,8 @@ def get_medicamentos(user_id):
         conn = connect_to_db()
         cursor = conn.cursor()
 
-        cursor.callproc("mydbtam.get_medicamentos_user", (user_id,))
+        query = "SELECT * FROM mydbtam.v_medicamentos_by_user WHERE utilizador_id_utilizador = %s;"
+        cursor.execute(query, (user_id,))
 
         results = cursor.fetchall()
 
@@ -371,7 +372,7 @@ def get_medicamentos(user_id):
         cursor.close()
         conn.close()
 
-        return jsonify({"medicamentos": medicamentos}), OK_CODE
+        return jsonify({"medicamentos": medicamentos, "userId": user_id}), OK_CODE
 
     except Exception as e:
         return jsonify({"error": str(e)}), SERVER_ERROR
