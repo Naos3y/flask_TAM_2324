@@ -57,8 +57,8 @@ def verify_token(token):
             print("decoded token abaixo")
             print(decoded_token)
 
-            # if decoded_token["expiration"] < str(datetime.utcnow()):
-            # return False, "Token expirou!"
+            if decoded_token["expiration"] < str(datetime.utcnow()):
+                return False, "Token expirou!"
 
             return True, "Token válido."
 
