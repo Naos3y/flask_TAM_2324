@@ -28,22 +28,59 @@ def connect_to_db():
     return psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
 
 
-def get_user_id():
+def verifica_token():
     token = request.headers.get("Authorization")
 
     if not token:
-        return (
-            jsonify({"Erro": "Token está em falta!"}),
-            UNAUTHORIZED_CODE,
-        )
+        return jsonify({"Erro": "Token está em falta!"}), UNAUTHORIZED_CODE
 
-    if "Bearer" in token:
-        token = token.split(" ")[1]
+    if "Bearer" not in token:
+        return jsonify({"Erro": "Formato de token inválido"}), UNAUTHORIZED_CODE
 
-    decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    token = token.split(" ")[1]
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
+    except jwt.InvalidTokenError:
+        return jsonify({"Erro": "Token Inválido"}), UNAUTHORIZED_CODE
+
+    if decoded_token.get("expiration") < str(datetime.utcnow()):
+        return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
+
     return decoded_token.get("user_id")
 
 
+def verifica_token(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        token = request.headers.get("Authorization")
+
+        if not token or "Bearer" not in token:
+            return (
+                jsonify({"Erro": "Token está em falta ou formato inválido"}),
+                UNAUTHORIZED_CODE,
+            )
+
+        token = token.split(" ")[1]
+
+        try:
+            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
+        except jwt.InvalidTokenError:
+            return jsonify({"Erro": "Token Inválido"}), UNAUTHORIZED_CODE
+
+        if decoded_token.get("expiration") < str(datetime.utcnow()):
+            return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
+
+        return func(decoded_token.get("user_id"), *args, **kwargs)
+
+    return wrapper
+
+
+"""
 def verify_token(token):
     print("Secret key abaixo:")
     print(SECRET_KEY)
@@ -96,13 +133,14 @@ def before_request():
         print()
         if not token:
             return (
-                jsonify({"Erro": "Token está em falta! - Middleware"}),
+                jsonify({"Erro": "Token está em falta! - Middleware 2"}),
                 UNAUTHORIZED_CODE,
             )
 
         is_valid, message = verify_token(token)
         if not is_valid:
             return jsonify({"Erro": message}), UNAUTHORIZED_CODE
+"""
 
 
 @app.route("/login", methods=["POST"])
@@ -300,15 +338,13 @@ def get_all_medicamentos():
 
 
 @app.route("/get_user_medicamentos", methods=["GET"])
-def get_medicamentos():
+@verifica_token
+def get_medicamentos(user_id):
     try:
-        id_user = get_user_id()
-        print(id_user)
-
         conn = connect_to_db()
         cursor = conn.cursor()
 
-        cursor.callproc("mydbtam.get_medicamentos_user", (id_user,))
+        cursor.callproc("mydbtam.get_medicamentos_user", (user_id,))
 
         results = cursor.fetchall()
 
