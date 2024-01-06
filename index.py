@@ -30,11 +30,16 @@ def connect_to_db():
 
 def get_user_id():
     token = request.headers.get("Authorization")
+
     if not token:
         return (
             jsonify({"Erro": "Token está em falta!"}),
             UNAUTHORIZED_CODE,
         )
+
+    if "Bearer" in token:
+        token = token.split(" ")[1]
+
     decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
     return decoded_token.get("user_id")
 
