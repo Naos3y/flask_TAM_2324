@@ -496,5 +496,38 @@ def obter_historico(user_id):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/obter_utilizador", methods=["GET"])
+@verifica_token
+def obter_utilizador(user_id):
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc("mydbtam.ver_perfil_user", [user_id])
+
+        user_details = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if user_details:
+            return (
+                jsonify(
+                    {
+                        "id_utilizador": user_details[0],
+                        "u_nome": user_details[1],
+                        "u_username": user_details[2],
+                        "u_email": user_details[3],
+                    }
+                ),
+                200,
+            )
+        else:
+            return jsonify({"error": "Utilizador não encontrado"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
