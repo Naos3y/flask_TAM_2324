@@ -496,9 +496,9 @@ def obter_historico(user_id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/obter_utilizador", methods=["GET"])
+@app.route("/ver_perfil", methods=["GET"])
 @verifica_token
-def obter_utilizador(user_id):
+def ver_perfil(user_id):
     try:
         conn = connect_to_db()
         cursor = conn.cursor()
