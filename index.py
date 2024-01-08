@@ -209,15 +209,14 @@ def inserir_medicamento(user_id):
     m_dosagem = data.get("m_dosagem")
     m_formafarmaceutica = data.get("m_formafarmaceutica")
     m_posologia = data.get("m_posologia")
-    m_quantidade = data.get("m_quantidade")
-    m_duracao = data.get("m_duracao")
-    m_datainiciotratamento = data.get("m_datainiciotratamento")
-    m_administrado = data.get("m_administrado")
-    utilizador_id = user_id
     m_horario1 = data.get("m_horario1")
     m_horario2 = data.get("m_horario2")
     m_horario3 = data.get("m_horario3")
     m_horario4 = data.get("m_horario4")
+    m_quantidade = data.get("m_quantidade")
+    m_duracao = data.get("m_duracao")
+    m_datainiciotratamento = data.get("m_datainiciotratamento")
+    utilizador_id = user_id
 
     try:
         conn = connect_to_db()
