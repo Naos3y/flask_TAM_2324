@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import os
 from functools import wraps
 
-#ola
+# ola
 
 app = Flask(__name__)
 app.debug = True
@@ -202,7 +202,8 @@ def register_user():
 
 
 @app.route("/insert_medicamento", methods=["POST"])
-def inserir_medicamento():
+@verifica_token
+def inserir_medicamento(user_id):
     data = request.json
     m_nome = data.get("m_nome")
     m_dosagem = data.get("m_dosagem")
@@ -212,7 +213,7 @@ def inserir_medicamento():
     m_duracao = data.get("m_duracao")
     m_datainiciotratamento = data.get("m_datainiciotratamento")
     m_administrado = data.get("m_administrado")
-    utilizador_id = data.get("utilizador_id_utilizador")
+    utilizador_id = user_id
     m_horario1 = data.get("m_horario1")
     m_horario2 = data.get("m_horario2")
     m_horario3 = data.get("m_horario3")
@@ -229,15 +230,14 @@ def inserir_medicamento():
                 m_dosagem,
                 m_formafarmaceutica,
                 m_posologia,
-                m_quantidade,
-                m_duracao,
-                m_datainiciotratamento,
-                m_administrado,
-                utilizador_id,
                 m_horario1,
                 m_horario2,
                 m_horario3,
                 m_horario4,
+                m_quantidade,
+                m_duracao,
+                m_datainiciotratamento,
+                utilizador_id,
             ),
         )
 
@@ -304,8 +304,11 @@ def get_all_medicamentos():
                 "m_quantidade": row[9],
                 "m_duracao": row[10],
                 "m_datainiciotratamento": row[11],
-                "m_administrado": row[12],
-                "utilizador_id_utilizador": row[13],
+                "m_administrado1": row[12],
+                "m_administrado2": row[13],
+                "m_administrado3": row[14],
+                "m_administrado4": row[15],
+                "utilizador_id_utilizador": row[16],
             }
             medicamentos.append(medicamento)
 
@@ -343,8 +346,11 @@ def get_medicamentos(user_id):
                 "m_quantidade": row[9],
                 "m_duracao": row[10],
                 "m_datainiciotratamento": row[11],
-                "m_administrado": row[12],
-                "utilizador_id_utilizador": row[13],
+                "m_administrado1": row[12],
+                "m_administrado2": row[13],
+                "m_administrado3": row[14],
+                "m_administrado4": row[15],
+                "utilizador_id_utilizador": row[16],
             }
             medicamentos.append(medicamento)
 
