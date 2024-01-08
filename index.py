@@ -384,8 +384,6 @@ def editar_medicamento():
                 data.get("m_quantidade"),
                 data.get("m_duracao"),
                 data.get("m_datainiciotratamento"),
-                data.get("p_administrado"),
-                data.get("utilizador_id"),
                 data.get("m_horario1"),
                 data.get("m_horario2"),
                 data.get("m_horario3"),
