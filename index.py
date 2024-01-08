@@ -224,7 +224,7 @@ def inserir_medicamento(user_id):
         cursor = conn.cursor()
 
         cursor.callproc(
-            "mydbtam.inserir_medicamento",
+            "mydbtam.inserir_medicamento_user",
             (
                 m_nome,
                 m_dosagem,
