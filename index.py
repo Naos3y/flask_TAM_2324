@@ -229,14 +229,14 @@ def inserir_medicamento(user_id):
                 m_dosagem,
                 m_formafarmaceutica,
                 m_posologia,
-                m_horario1,
-                m_horario2,
-                m_horario3,
-                m_horario4,
                 m_quantidade,
                 m_duracao,
                 m_datainiciotratamento,
                 utilizador_id,
+                m_horario1,
+                m_horario2,
+                m_horario3,
+                m_horario4,
             ),
         )
 
