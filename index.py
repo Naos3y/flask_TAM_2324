@@ -357,10 +357,10 @@ def editar_medicamento(user_id):
         cursor.close()
         conn.close()
 
-        return jsonify({"message": "Medicamento atualizado com sucesso!"}), 200
+        return jsonify({"message": "Medicamento atualizado com sucesso!"}), OK_CODE
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), SERVER_ERROR
 
 
 @app.route("/insert_medicamento", methods=["POST"])
@@ -411,8 +411,30 @@ def inserir_medicamento(user_id):
     except Exception as e:
         return (
             jsonify({"error": f"Ocorreu um erro ao atualizar o medicamento: {str(e)}"}),
-            500,
+            SERVER_ERROR,
         )
+
+
+@app.route("/apagar_medicamento", methods=["DELETE"])
+@verifica_token
+def apagar_medicamento(user_id):
+    data = request.json
+    medicamento_id = data.get("id_medicamentos")
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc("mydbtam.apagar_medicamento", (medicamento_id,))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Medicamento apagado com sucesso!"}), OK_CODE
+
+    except Exception as e:
+        error_message = f"Ocorreu um erro ao apagar o medicamento: {str(e)}"
+        return jsonify({"error": error_message}), SERVER_ERROR
 
 
 if __name__ == "__main__":
