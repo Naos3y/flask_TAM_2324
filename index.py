@@ -437,5 +437,64 @@ def apagar_medicamento(user_id):
         return jsonify({"error": error_message}), SERVER_ERROR
 
 
+@app.route("/administrar_medicamento", methods=["POST"])
+@verifica_token
+def administrar_medicamento(user_id):
+    try:
+        medicamento_id = request.json.get("medicamento_id")
+        string_Horario = request.json.get("horario")
+
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc(
+            "mydbtam.administrar_medicamento", [medicamento_id, string_Horario]
+        )
+
+        horario = cursor.fetchone()[0]
+
+        cursor.callproc("mydbtam.inserir_historico", [horario, medicamento_id, user_id])
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"horario devolvido": horario}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/obter_historico", methods=["GET"])
+@verifica_token
+def obter_historico(user_id):
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc("mydbtam.obter_historico_utilizador", [user_id])
+
+        historico = cursor.fetchall()
+
+        historico_json = []
+        for row in historico:
+            historico_json.append(
+                {
+                    "id_historico": row[0],
+                    "h_horario": row[1],
+                    "medicamentos_id_medicamentos": row[2],
+                    "medicamentos_utilizador_id_utilizador": row[3],
+                }
+            )
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(historico_json), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
