@@ -362,5 +362,46 @@ def get_medicamentos(user_id):
         return jsonify({"error": str(e)}), NOT_FOUND_CODE
 
 
+@app.route("/editar_medicamento", methods=["PUT"])
+@verifica_token
+def editar_medicamento():
+    data = request.json
+
+    medicamento_id = data.get("id_medicamentos")
+
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc(
+            "mydbtam.alterar_medicamento",
+            (
+                medicamento_id,
+                data.get("m_nome"),
+                data.get("m_dosagem"),
+                data.get("m_formafarmaceutica"),
+                data.get("m_posologia"),
+                data.get("m_quantidade"),
+                data.get("m_duracao"),
+                data.get("m_datainiciotratamento"),
+                data.get("p_administrado"),
+                data.get("utilizador_id"),
+                data.get("m_horario1"),
+                data.get("m_horario2"),
+                data.get("m_horario3"),
+                data.get("m_horario4"),
+            ),
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Medicamento atualizado com sucesso!"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
