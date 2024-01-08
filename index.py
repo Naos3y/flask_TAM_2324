@@ -409,7 +409,10 @@ def inserir_medicamento(user_id):
         return jsonify({"message": "Medicamento inserido com sucesso!"}), SUCCESS_CODE
 
     except Exception as e:
-        return jsonify({"error": str(e)}), SERVER_ERROR
+        return (
+            jsonify({"error": f"Ocorreu um erro ao atualizar o medicamento: {str(e)}"}),
+            500,
+        )
 
 
 if __name__ == "__main__":
