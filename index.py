@@ -201,55 +201,6 @@ def register_user():
         return jsonify({"error": str(e)}), NOT_FOUND_CODE
 
 
-@app.route("/insert_medicamento", methods=["POST"])
-@verifica_token
-def inserir_medicamento(user_id):
-    data = request.json
-    m_nome = data.get("m_nome")
-    m_dosagem = data.get("m_dosagem")
-    m_formafarmaceutica = data.get("m_formafarmaceutica")
-    m_posologia = data.get("m_posologia")
-    m_horario1 = data.get("m_horario1")
-    m_horario2 = data.get("m_horario2")
-    m_horario3 = data.get("m_horario3")
-    m_horario4 = data.get("m_horario4")
-    m_quantidade = data.get("m_quantidade")
-    m_duracao = data.get("m_duracao")
-    m_datainiciotratamento = data.get("m_datainiciotratamento")
-    utilizador_id = user_id
-
-    try:
-        conn = connect_to_db()
-        cursor = conn.cursor()
-
-        cursor.callproc(
-            "mydbtam.inserir_medicamento_user",
-            (
-                m_nome,
-                m_dosagem,
-                m_formafarmaceutica,
-                m_posologia,
-                m_quantidade,
-                m_duracao,
-                m_datainiciotratamento,
-                utilizador_id,
-                m_horario1,
-                m_horario2,
-                m_horario3,
-                m_horario4,
-            ),
-        )
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message": "Medicamento inserido com sucesso!"}), SUCCESS_CODE
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), SERVER_ERROR
-
-
 @app.route("/users", methods=["GET"])
 def get_all_users():
     try:
@@ -364,10 +315,21 @@ def get_medicamentos(user_id):
 
 @app.route("/editar_medicamento", methods=["PUT"])
 @verifica_token
-def editar_medicamento():
+def editar_medicamento(user_id):
     data = request.json
 
     medicamento_id = data.get("id_medicamentos")
+    nome = data.get("m_nome")
+    dosagem = data.get("m_dosagem")
+    formafarmaceutica = data.get("m_formafarmaceutica")
+    posologia = data.get("m_posologia")
+    quantidade = data.get("m_quantidade")
+    duracao = data.get("m_duracao")
+    datainiciotratamento = data.get("m_datainiciotratamento")
+    horario1 = data.get("m_horario1")
+    horario2 = data.get("m_horario2")
+    horario3 = data.get("m_horario3")
+    horario4 = data.get("m_horario4")
 
     try:
         conn = connect_to_db()
@@ -377,17 +339,17 @@ def editar_medicamento():
             "mydbtam.alterar_medicamento",
             (
                 medicamento_id,
-                data.get("m_nome"),
-                data.get("m_dosagem"),
-                data.get("m_formafarmaceutica"),
-                data.get("m_posologia"),
-                data.get("m_quantidade"),
-                data.get("m_duracao"),
-                data.get("m_datainiciotratamento"),
-                data.get("m_horario1"),
-                data.get("m_horario2"),
-                data.get("m_horario3"),
-                data.get("m_horario4"),
+                nome,
+                dosagem,
+                formafarmaceutica,
+                posologia,
+                quantidade,
+                duracao,
+                datainiciotratamento,
+                horario1,
+                horario2,
+                horario3,
+                horario4,
             ),
         )
 
@@ -399,6 +361,55 @@ def editar_medicamento():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/insert_medicamento", methods=["POST"])
+@verifica_token
+def inserir_medicamento(user_id):
+    data = request.json
+    m_nome = data.get("m_nome")
+    m_dosagem = data.get("m_dosagem")
+    m_formafarmaceutica = data.get("m_formafarmaceutica")
+    m_posologia = data.get("m_posologia")
+    m_horario1 = data.get("m_horario1")
+    m_horario2 = data.get("m_horario2")
+    m_horario3 = data.get("m_horario3")
+    m_horario4 = data.get("m_horario4")
+    m_quantidade = data.get("m_quantidade")
+    m_duracao = data.get("m_duracao")
+    m_datainiciotratamento = data.get("m_datainiciotratamento")
+    utilizador_id = user_id
+
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc(
+            "mydbtam.inserir_medicamento_user",
+            (
+                m_nome,
+                m_dosagem,
+                m_formafarmaceutica,
+                m_posologia,
+                m_quantidade,
+                m_duracao,
+                m_datainiciotratamento,
+                utilizador_id,
+                m_horario1,
+                m_horario2,
+                m_horario3,
+                m_horario4,
+            ),
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Medicamento inserido com sucesso!"}), SUCCESS_CODE
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), SERVER_ERROR
 
 
 if __name__ == "__main__":
