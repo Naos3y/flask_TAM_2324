@@ -315,7 +315,7 @@ def get_medicamentos(user_id):
 
 @app.route("/editar_medicamento", methods=["PUT"])
 @verifica_token
-def editar_medicamento():
+def editar_medicamento(user_id):
     data = request.json
 
     medicamento_id = data.get("id_medicamentos")
