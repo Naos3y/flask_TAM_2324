@@ -169,7 +169,10 @@ def login():
 
             return (
                 jsonify(
-                    {"access_token": token_str, "user_id": get_userId_from_token(token)}
+                    {
+                        "access_token": token_str,
+                        "user_id": get_userId_from_token(token_str),
+                    }
                 ),
                 OK_CODE,
             )
