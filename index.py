@@ -453,10 +453,7 @@ def apagar_medicamento(user_id):
         cursor.close()
         conn.close()
 
-        return (
-            jsonify({"message": "Medicamento apagado com sucesso!", "data": data}),
-            OK_CODE,
-        )
+        return jsonify({"message": "Medicamento apagado com sucesso!"}), OK_CODE
 
     except Exception as e:
         error_message = f"Ocorreu um erro ao apagar o medicamento: {str(e)}"
