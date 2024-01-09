@@ -307,7 +307,7 @@ def get_medicamentos(user_id):
         cursor.close()
         conn.close()
 
-        return jsonify({"medicamentos": medicamentos, "userId": user_id}), OK_CODE
+        return jsonify({"medicamentos": medicamentos}), OK_CODE
 
     except Exception as e:
         return jsonify({"error": str(e)}), NOT_FOUND_CODE
