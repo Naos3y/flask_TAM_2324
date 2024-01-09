@@ -61,6 +61,15 @@ def verifica_token(func):
     return wrapper
 
 
+def get_userId_from_token(token):
+    if "Bearer" not in token:
+        return jsonify({"Erro": "Formato de token inválido"}), UNAUTHORIZED_CODE
+
+    token = token.split(" ")[1]
+    decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    return decoded_token.get("id_utilizador")
+
+
 """
 def verify_token(token):
     print("Secret key abaixo:")
@@ -157,7 +166,13 @@ def login():
             print()
             cursor.close()
             conn.close()
-            return jsonify({"access_token": token_str}), OK_CODE
+
+            return (
+                jsonify(
+                    {"access_token": token_str, "user_id": get_userId_from_token(token)}
+                ),
+                OK_CODE,
+            )
         else:
             return jsonify({"Erro": "Credenciais inválidas"}), UNAUTHORIZED_CODE
 
