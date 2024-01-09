@@ -432,7 +432,7 @@ def obter_historico(user_id):
         conn = connect_to_db()
         cursor = conn.cursor()
 
-        cursor.callproc("mydbtam.obter_historico_com_medicamento", [user_id])
+        cursor.callproc("mydbtam.obter_historico_utilizador", [user_id])
 
         historico = cursor.fetchall()
 
