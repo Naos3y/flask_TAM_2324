@@ -75,69 +75,6 @@ def get_userId_from_token(token):
     return decoded_token.get("id_utilizador")
 
 
-"""
-def verify_token(token):
-    print("Secret key abaixo:")
-    print(SECRET_KEY)
-    print("Token na verify_token abaixo:")
-    print(token)
-    print()
-    print("tipo")
-    print()
-    print(type(token))
-
-    try:
-        # Verifica se "Bearer" está presente no token
-        if "Bearer" in token:
-            token = token.split(" ")[1]
-            print()
-            print("token depois do bearer")
-            print(token)
-            print()
-            print("tipoe")
-            print()
-            print(type(token))
-
-            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            print()
-            print("decoded token abaixo")
-            print(decoded_token)
-
-            if decoded_token["expiration"] < str(datetime.utcnow()):
-                return False, "Token expirou!"
-
-            return True, "Token válido."
-
-    except jwt.ExpiredSignatureError:
-        return False, "O Token expirou!"
-    except jwt.InvalidTokenError as e:
-        return False, f"Token inválido. Detalhes: {str(e)}"
-    except Exception as e:
-        return False, f"Erro ao verificar o token: {str(e)}"
-
-
-# Middleware para verificar o token antes de cada solicitação para inserir medicamento
-@app.before_request
-def before_request():
-    excluded_endpoints = ["login", "register", "users"]
-
-    if request.endpoint not in excluded_endpoints:
-        token = request.headers.get("Authorization")
-        print("token no request headers: ")
-        print(token)
-        print()
-        if not token:
-            return (
-                jsonify({"Erro": "Token está em falta! - Middleware 2"}),
-                UNAUTHORIZED_CODE,
-            )
-
-        is_valid, message = verify_token(token)
-        if not is_valid:
-            return jsonify({"Erro": message}), UNAUTHORIZED_CODE
-"""
-
-
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -495,7 +432,7 @@ def obter_historico(user_id):
         conn = connect_to_db()
         cursor = conn.cursor()
 
-        cursor.callproc("mydbtam.obter_historico_utilizador", [user_id])
+        cursor.callproc("mydbtam.obter_historico_com_medicamento", [user_id])
 
         historico = cursor.fetchall()
 
@@ -507,6 +444,9 @@ def obter_historico(user_id):
                     "h_horario": row[1],
                     "medicamentos_id_medicamentos": row[2],
                     "medicamentos_utilizador_id_utilizador": row[3],
+                    "nome_medicamento": row[4],
+                    "forma_farmaceutica": row[5],
+                    "quantidade": row[6],
                 }
             )
 
