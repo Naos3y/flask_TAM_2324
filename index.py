@@ -440,7 +440,7 @@ def inserir_medicamento(user_id):
 
 @app.route("/apagar_medicamento", methods=["DELETE"])
 @verifica_token
-def apagar_medicamento():
+def apagar_medicamento(user_id):
     data = request.json
     medicamento_id = data.get("id_medicamentos")
     try:
@@ -453,14 +453,11 @@ def apagar_medicamento():
         cursor.close()
         conn.close()
 
-        return (
-            jsonify({"message": "Medicamento apagado com sucesso!", "data": data}),
-            OK_CODE,
-        )
+        return jsonify({"message": "Medicamento apagado com sucesso!"}), OK_CODE
 
     except Exception as e:
         error_message = f"Ocorreu um erro ao apagar o medicamento: {str(e)}"
-        return jsonify({"error": error_message, "data": data}), SERVER_ERROR
+        return jsonify({"error": error_message}), SERVER_ERROR
 
 
 @app.route("/administrar_medicamento", methods=["POST"])
