@@ -62,20 +62,17 @@ def verifica_token(func):
 
 
 def get_userId_from_token(token):
-    if "Bearer" not in token:
-        return None, jsonify({"Erro": "Formato de token inválido"}), UNAUTHORIZED_CODE
-
-    token = token.split(" ")[1]
-
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return decoded_token.get("id_utilizador"), None, None
     except jwt.ExpiredSignatureError:
-        return None, jsonify({"Erro": "Token expirado"}), UNAUTHORIZED_CODE
+        return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
     except jwt.InvalidTokenError:
-        return None, jsonify({"Erro": "Token inválido"}), UNAUTHORIZED_CODE
-    except Exception as e:
-        return None, jsonify({"Erro": str(e)}), SERVER_ERROR
+        return jsonify({"Erro": "Token Inválido ou mal formado"}), UNAUTHORIZED_CODE
+
+    if decoded_token.get("expiration") < str(datetime.utcnow()):
+        return jsonify({"Erro": "Token Expirado"}), UNAUTHORIZED_CODE
+
+    return decoded_token.get("id_utilizador")
 
 
 """
