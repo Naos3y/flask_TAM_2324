@@ -492,5 +492,24 @@ def ver_perfil(user_id):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/reset_administrados", methods=["GET"])
+def reset_administrados():
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+
+        cursor.callproc("mydbtam.reset_administrados")
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Medicamentos resetados"}), OK_CODE
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
